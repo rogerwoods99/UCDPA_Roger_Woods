@@ -14,25 +14,31 @@ grDat=pd.read_csv(filename)
 grDat["County"]=""
 
 #print(grDat)
-sf = shapefile.Reader("shapefiles/test/gadm36_IRL_lessPtsIRL_region")  # this only has one shape to search through
+sf = shapefile.Reader("shapefiles/test/IRL_Counties_region")  # this only has one shape to search through
 
 shapes=sf.shapes()
 
 #print(len(shapes))
-print(shapes[25])   # 342 shapes
+#print(shapes[0])   # 342 shapes
 
 point_to_check = (214000,278000) # an x,y tuple
 all_shapes = sf.shapes() # get all the polygons
 all_records = sf.records()
 
 # search through each shape to find the one the point is in
-for i in range(200):
+for i in range(0,200):    # number of points to search through
     point_to_check = (grDat.loc[i,"east"], grDat.loc[i,"north"])
-    print(point_to_check)
-    for d in range(25):
+   # print(point_to_check)
+    for d in range(26):   # number of objects to search through
         if Point(point_to_check).within(shape(shapes[d])):  # make a point and see if it's in the polygon
             name = all_records[d][3]  # get the second field of the corresponding record
-            print("The point is in " + str(name))
+            print(str(i) + " complete")
+            grDat.loc[i,"County"]=name
+           # print(i)
+#            print("The point " +str(point_to_check) + " is in " + str(name))
+
+# save result to csv
+grDat.to_csv("Met Results.txt")
 
 #for i in len(all_shapes):
 #    boundary = all_shapes[i] # get a boundary polygon
