@@ -8,7 +8,7 @@ import pandas as pd
 
 # get Met Eireann data which already has the elevation data included.
 # Add a "County" column to store the county name per point
-filename="MetEireann out.txt"
+filename="MetEireann_maxT with Elev.txt"
 grDat = pd.read_csv(filename)
 grDat["County"]=""
 
@@ -44,7 +44,7 @@ for i in range(0,84291):    # number of points to search through
     print(str(i) + " complete")
 
 # save result to csv
-grDat.to_csv("MetEireann_County.txt")
+grDat.to_csv("MetEireann_maxT_County.txt")
 #print(grDat[:10])
 
 # plot the shapefile

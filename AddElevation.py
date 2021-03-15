@@ -40,12 +40,14 @@ transformerToXY = Transformer.from_crs("epsg:4326", "epsg:29902")
 transformerFromXY = Transformer.from_crs("epsg:29902", "epsg:4326")
 
 ######################
-# load file and create DF
+# load initial Met Eireann file of minimum temperatures and create DF
 
-filename="MetEireannTemp.txt"
+filename="MetEireannBasic_MaxT.txt"
 grDat=pd.read_csv(filename)
 
-#print(grDat)
+# check for any NaN values - all False, so no issue
+grNaN=grDat.isna().any()
+print(grNaN)
 
 # convert the Easting and Northing column data to numpy arrays
 ListEast=grDat["east"].to_numpy()
@@ -89,5 +91,5 @@ print(ElevRes)
 grDat_new=grDat.merge(ElevRes, on=["Latit","Longit"], how="left")
 
 # output to CSV for future analysis
-grDat_new.to_csv("MetEireann out.txt")
+grDat_new.to_csv("MetEireann_maxT with Elev.txt")
 
