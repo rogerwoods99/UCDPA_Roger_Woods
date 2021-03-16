@@ -14,30 +14,69 @@ grDat = pd.read_csv(filename)
 
 # find the rows with NaN
 grNaN= grDat[grDat.isna().any(axis=1)]
-print(grNaN)
+#print(grNaN)
 
 #print(grDat.columns)
 grDat.dropna(inplace=True)  # drop rows with NaN value
 grDat.drop(grDat.columns[0:2], axis=1, inplace=True)  # drop the first 2 columns
 grDat.drop(columns="Elev_x", axis=1, inplace=True)  # drop the Elev_x column
-print(grDat)
+#print(grDat)
 
+##############################
+# Merge the data from the Min Temp, Max rain and Min rain files
+
+# get Met Eireann min temp data as DF.
+filename="MetEireannBasic_MinT.txt"
+MetTMin = pd.read_csv(filename)
+#print(MetTMin)
+
+# merge this DF with the main DF so that we have the min, max temperature, elevation and county for each
+# of the 69,862 points
+MetTMaxMin=grDat.merge(MetTMin, on=["east","north"], how="left", suffixes=("_Tmax", "_Tmin"))
+#print(MetTMaxMin.columns)
+
+# get Met Eireann rain data as DF.
+filename="MetEireannBasic_R.txt"
+MetR = pd.read_csv(filename)
+
+# merge this rainfall DF with the main DF so that we have the min, max temperature, rainfall,
+# elevation and county for each of the 69,862 points
+MetTMaxMinR=MetTMaxMin.merge(MetR, on=["east","north"], how="left")
+print(MetTMaxMinR.columns)
+
+#print(MetTMaxMinR)
+
+##  define function to plot data as points on XY Ireland grid
+def PlotMap(coordX, coordY, coordZ, labText, pltTit):
+    plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
+    plt.scatter(coordX, coordY, 1, c=coordZ, cmap="terrain")
+    plt.xlabel("Easting")
+    plt.ylabel("Northing")
+    # Add title
+    cbar = plt.colorbar()  # shows legend to the side
+    cbar.set_label(labText)
+    plt.grid(which="major", axis="both")
+    plt.text(90000, 106000, "Carrauntoohil", color="white", ha="left", fontsize="x-large", fontweight="bold")
+    plt.plot([80300, 90000], [84400, 106000], color="white")
+    plt.title(pltTit)
+
+#########################################################
+# Plot the rainfall data
+PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["ANN"],
+        "Annual Rainfall (mm)", "Ireland Rainfall data")
+plt.show()
+
+#########################################################
 # Plot the elevation data
-plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
-plt.scatter(grDat["east"], grDat["north"], 1,c=grDat["Elev_y"],cmap="terrain")
-plt.xlabel("x coord")
-plt.ylabel("y coord")
-# Add title
-cbar=plt.colorbar()   # shows legend to the side
-cbar.set_label("elevation (m)")
-plt.title("Ireland Grid using c colour method")
+PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["Elev_y"],
+        "elevation (m)", "Ireland Terrain Height (m)")
 plt.show()
 
 ########################
 # CORRELATION OF ELEVATION AND MAX TEMP
 # max temp plot
 plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
-plt.scatter(grDat["m1Tmax"], grDat["Elev_y"])
+plt.scatter(MetTMaxMinR["m1Tmax"], MetTMaxMinR["Elev_y"])
 plt.xlabel("Max temp")
 plt.ylabel("Elevation (m)")
 plt.show()
@@ -46,7 +85,7 @@ plt.show()
 # AREA OF COUNTIES
 # Plot bar chart of the area of each county by the count of 1km squares
 # need to create DF of the grouped results and then sort by the area so that plots from smallest to largest
-grDat_Gp = grDat.groupby("County")["County"].count().to_frame(name="Area")
+grDat_Gp = MetTMaxMinR.groupby("County")["County"].count().to_frame(name="Area")
 grFinal= grDat_Gp.sort_values(by=["Area"])
 #grFinal["Size"]=0
 grFinal.reset_index(inplace=True)   # reset the index so that can plot properly
