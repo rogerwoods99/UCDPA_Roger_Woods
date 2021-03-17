@@ -42,9 +42,26 @@ MetR = pd.read_csv(filename)
 # merge this rainfall DF with the main DF so that we have the min, max temperature, rainfall,
 # elevation and county for each of the 69,862 points
 MetTMaxMinR=MetTMaxMin.merge(MetR, on=["east","north"], how="left")
-print(MetTMaxMinR.columns)
+#print(MetTMaxMinR.columns)
 
 #print(MetTMaxMinR)
+
+#######################################
+# Calculate the min of the minT values and the max of the maxT values
+
+# minimum of minT
+colMin = MetTMaxMinR.loc[:, "m1Tmin":"m12Tmin"]
+MetTMaxMinR["minT"]= colMin.min(axis=1)
+
+# maximum of maxT
+colMax = MetTMaxMinR.loc[:, "m1Tmax":"m12Tmax"]
+MetTMaxMinR["maxT"]= colMax.max(axis=1)
+
+print(MetTMaxMinR.columns)
+
+# save result to txt file
+MetTMaxMinR.to_csv("minTcol.txt")
+################################################
 
 ##  define function to plot data as points on XY Ireland grid
 def PlotMap(coordX, coordY, coordZ, labText, pltTit):
@@ -72,14 +89,48 @@ PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["Elev_y"],
         "elevation (m)", "Ireland Terrain Height (m)")
 plt.show()
 
+#########################################################
+# Plot the minimum temp data
+PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["minT"],
+        "temperature (" + chr(176) + "C)", "Ireland Minimum Temperature")
+plt.show()
+
+#########################################################
+# Plot the maximum temp data
+PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["maxT"],
+        "temperature (" + chr(176) + "C)", "Ireland Maximum Temperature")
+plt.show()
+
 ########################
 # CORRELATION OF ELEVATION AND MAX TEMP
-# max temp plot
-plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
-plt.scatter(MetTMaxMinR["m1Tmax"], MetTMaxMinR["Elev_y"])
-plt.xlabel("Max temp")
+
+plt.figure(figsize=(9, 10), dpi=80 )  # set the size of the image window. figsize x dpi gives the output size
+plt.scatter(MetTMaxMinR["maxT"], MetTMaxMinR["Elev_y"])
+plt.xlabel("Max temp (" + chr(176) + "C)")
 plt.ylabel("Elevation (m)")
+plt.title("Correlation of Elevation and Maximum Temperature")
 plt.show()
+
+########################
+# CORRELATION OF ELEVATION AND MIN TEMP
+
+plt.figure(figsize=(9, 10), dpi=80 )  # set the size of the image window. figsize x dpi gives the output size
+plt.scatter(MetTMaxMinR["minT"], MetTMaxMinR["Elev_y"])
+plt.xlabel("Min temp (" + chr(176)+ "C)")
+plt.ylabel("Elevation (m)")
+plt.title("Correlation of Elevation and Minimum Temperature")
+plt.show()
+
+########################
+# CORRELATION OF ELEVATION AND RAINFALL
+
+plt.figure(figsize=(9, 10), dpi=80 )  # set the size of the image window. figsize x dpi gives the output size
+plt.scatter(MetTMaxMinR["ANN"], MetTMaxMinR["Elev_y"])
+plt.xlabel("Annual Rainfall (mm)")
+plt.ylabel("Elevation (m)")
+plt.title("Correlation of Elevation and Annual Rainfall")
+plt.show()
+
 
 ##########################
 # AREA OF COUNTIES
@@ -118,13 +169,10 @@ print(grFinal)
 
 # this is the best
 fig, ax = plt.subplots()
-
 fig.set_size_inches(9,7)
-
-
 ax.barh(grFinal["County"], grFinal["Area"], zorder=2)  # zorder specifies the order of drawing
 #ax.set_xticklabels(Rio.index)  #, rotation=45)
-ax.set_xlabel("Area km2")
+ax.set_xlabel("Area km\u00b2")
 ax.set_ylabel("County")
 
 ax.xaxis.set_minor_locator(MultipleLocator(200)) ### set minor tick mark size
@@ -136,7 +184,7 @@ ax.grid(True, axis="x", which="major", linewidth=2, zorder=1)
 
 
 #ax.legend("Area")
-fig.suptitle("Area of Irish Counties (km2)")
+fig.suptitle("Area of Irish Counties (km\u00b2)")
 fig.tight_layout()   # removes white space around graph
 #ax.legend()
 plt.show()
