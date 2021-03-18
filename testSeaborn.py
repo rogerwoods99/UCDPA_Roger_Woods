@@ -39,14 +39,25 @@ print(grList)
 
 #sns.set_style("whitegrid")
 #sns.set_palette("Purples")
+sns.set_style("dark")
 sns.catplot(y=grDat["County"], kind="count", data=grDat,
-            order=grList, palette=sns.color_palette('Reds', n_colors=26))
+            order=grList, palette=sns.color_palette('viridis', n_colors=26),
+            height=8, zorder=2)
+#plt.figure(figsize=(9, 10), dpi=80)
+plt.xlabel("County Area (km\u00b2)", fontsize=11)
+plt.ylabel("County Name", fontsize=11)
+plt.grid(which="major", axis="both", zorder=1)
+plt.title("Area of Irish Counties (km\u00b2)", fontsize=14)
+plt.tight_layout()
 plt.show()
+
+## end of Seaborn
+###############################
 
 #################################
 # use Seaborn to do a count plot. Much faster than matplotlib
-sns.countplot(y=grDat["County"])
-plt.show()
+#sns.countplot(y=grDat["County"])
+#plt.show()
 
 ###########################
 #sns.scatterplot(x=grDat["east"], y=grDat["north"], data=grDat, hue=grDat["Elev_y"])
@@ -57,23 +68,24 @@ plt.show()
 def PlotMap(coordX, coordY, coordZ, labText, pltTit, Ucol):
     plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
     plt.scatter(coordX, coordY, 1, c=coordZ, cmap=Ucol)
-    plt.xlabel("Easting")
-    plt.ylabel("Northing")
+    plt.xlabel("Easting", fontsize=12)
+    plt.ylabel("Northing", fontsize=12)
     # Add title
     cbar = plt.colorbar()  # shows legend to the side
-    cbar.set_label(labText)
+    cbar.set_label(labText, fontsize=12)
     plt.grid(which="major", axis="both")
     plt.text(90000, 106000, "Carrauntoohil", color="white", ha="left", fontsize="x-large", fontweight="bold")
     plt.plot([80300, 90000], [84400, 106000], color="white")
-    plt.title(pltTit)
+    plt.title(pltTit, fontsize=14)
+    plt.tight_layout()
 
 # Plot the minimum temp data
 PlotMap(grDat2["east"], grDat2["north"], grDat2["m1Tmin"],
-        "temperature (" + chr(176) + "C)", "Ireland Minimum Temperature", "YlGnBu")
+        "temperature (" + chr(176) + "C)", "Ireland Minimum Temperature", "winter")
 plt.show()
 
 #########################################################
 # Plot the maximum temp data
-PlotMap(grDat["east"], grDat["north"], grDat["m1Tmax"],
-        "temperature (" + chr(176) + "C)", "Ireland Maximum Temperature", "OrRd")
+PlotMap(grDat["east"], grDat["north"], grDat["m8Tmax"],
+        "temperature (" + chr(176) + "C)", "Ireland Maximum Temperature", "RdYlGn_r")
 plt.show()

@@ -6,6 +6,7 @@ from shapely.geometry import Point # Point class
 from shapely.geometry import shape # shape() is a function to convert geo objects through the interface
 import pandas as pd
 from matplotlib.ticker import MultipleLocator
+import seaborn as sns
 
 # get Met Eireann data which already has the elevation and county data included.
 # Add a "County" column to store the county name per point
@@ -63,78 +64,121 @@ print(MetTMaxMinR.columns)
 MetTMaxMinR.to_csv("minTcol.txt")
 ################################################
 
-##  define function to plot data as points on XY Ireland grid
-def PlotMap(coordX, coordY, coordZ, labText, pltTit):
+##############################################################
+##  DEFINE FUCNTION TO PLOT DATA AS POINTS ON XY IRELAND GRID
+
+#def PlotMapOld(coordX, coordY, coordZ, labText, pltTit):
+#    plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
+#    plt.scatter(coordX, coordY, 1, c=coordZ, cmap="terrain")
+#    plt.xlabel("Easting")
+#    plt.ylabel("Northing")
+#    # Add title
+#    cbar = plt.colorbar()  # shows legend to the side
+#    cbar.set_label(labText)
+#    plt.grid(which="major", axis="both")
+#    plt.text(90000, 106000, "Carrauntoohil", color="white", ha="left", fontsize="x-large", fontweight="bold")
+#    plt.plot([80300, 90000], [84400, 106000], color="white")
+#    plt.title(pltTit)
+
+def PlotMap(coordX, coordY, coordZ, labText, pltTit, Ucol):
     plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
-    plt.scatter(coordX, coordY, 1, c=coordZ, cmap="terrain")
-    plt.xlabel("Easting")
-    plt.ylabel("Northing")
+    plt.scatter(coordX, coordY, 1, c=coordZ, cmap=Ucol)
+    plt.xlabel("Easting", fontsize=12)
+    plt.ylabel("Northing", fontsize=12)
     # Add title
     cbar = plt.colorbar()  # shows legend to the side
-    cbar.set_label(labText)
+    cbar.set_label(labText, fontsize=12)
     plt.grid(which="major", axis="both")
     plt.text(90000, 106000, "Carrauntoohil", color="white", ha="left", fontsize="x-large", fontweight="bold")
     plt.plot([80300, 90000], [84400, 106000], color="white")
-    plt.title(pltTit)
+    plt.title(pltTit, fontsize=14)
+    plt.tight_layout()
 
 #########################################################
 # Plot the rainfall data
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["ANN"],
-        "Annual Rainfall (mm)", "Ireland Rainfall data")
+        "Annual Rainfall (mm)", "Ireland Rainfall data", "viridis")
 plt.show()
 
 #########################################################
 # Plot the elevation data
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["Elev_y"],
-        "elevation (m)", "Ireland Terrain Height (m)")
+        "elevation (m)", "Ireland Terrain Height (m)", "terrain")
 plt.show()
 
 #########################################################
 # Plot the minimum temp data
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["minT"],
-        "temperature (" + chr(176) + "C)", "Ireland Minimum Temperature")
+        "temperature (" + chr(176) + "C)", "Ireland Minimum Temperature", "winter")
 plt.show()
 
 #########################################################
 # Plot the maximum temp data
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["maxT"],
-        "temperature (" + chr(176) + "C)", "Ireland Maximum Temperature")
+        "temperature (" + chr(176) + "C)", "Ireland Maximum Temperature", "RdYlGn_r")
 plt.show()
+
+#################################################################
+# DEFINE FUNCTION TO PLOT CORRELATION VERSUS TEMPERATURE OR RAINFALL
+
+def PlotCorr(coordX, coordY, xLab, yLab, pltTit):
+    plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
+    plt.scatter(coordX, coordY)
+    plt.xlabel(xLab, fontsize=12)
+    plt.ylabel(yLab, fontsize=12)
+    # Add title
+#    cbar = plt.colorbar()  # shows legend to the side
+#    cbar.set_label(labText, fontsize=12)
+    plt.grid(which="major", axis="both")
+    plt.title(pltTit, fontsize=14)
+    plt.tight_layout()
 
 ########################
 # CORRELATION OF ELEVATION AND MAX TEMP
-
-plt.figure(figsize=(9, 10), dpi=80 )  # set the size of the image window. figsize x dpi gives the output size
-plt.scatter(MetTMaxMinR["maxT"], MetTMaxMinR["Elev_y"])
-plt.xlabel("Max temp (" + chr(176) + "C)")
-plt.ylabel("Elevation (m)")
-plt.title("Correlation of Elevation and Maximum Temperature")
+PlotCorr(MetTMaxMinR["maxT"], MetTMaxMinR["Elev_y"], "Max temp (" + chr(176) + "C)",
+         "Elevation (m)", "Correlation of Elevation and Maximum Temperature")
 plt.show()
 
 ########################
 # CORRELATION OF ELEVATION AND MIN TEMP
-
-plt.figure(figsize=(9, 10), dpi=80 )  # set the size of the image window. figsize x dpi gives the output size
-plt.scatter(MetTMaxMinR["minT"], MetTMaxMinR["Elev_y"])
-plt.xlabel("Min temp (" + chr(176)+ "C)")
-plt.ylabel("Elevation (m)")
-plt.title("Correlation of Elevation and Minimum Temperature")
+PlotCorr(MetTMaxMinR["minT"], MetTMaxMinR["Elev_y"], "Min temp (" + chr(176) + "C)",
+         "Elevation (m)", "Correlation of Elevation and Minimum Temperature")
 plt.show()
 
 ########################
 # CORRELATION OF ELEVATION AND RAINFALL
-
-plt.figure(figsize=(9, 10), dpi=80 )  # set the size of the image window. figsize x dpi gives the output size
-plt.scatter(MetTMaxMinR["ANN"], MetTMaxMinR["Elev_y"])
-plt.xlabel("Annual Rainfall (mm)")
-plt.ylabel("Elevation (m)")
-plt.title("Correlation of Elevation and Annual Rainfall")
+PlotCorr(MetTMaxMinR["ANN"], MetTMaxMinR["Elev_y"], "Annual Rainfall (mm)",
+         "Elevation (m)", "Correlation of Elevation and Annual Rainfall")
 plt.show()
 
-
 ##########################
-# AREA OF COUNTIES
+# PLOT AREA OF COUNTIES
 # Plot bar chart of the area of each county by the count of 1km squares
+
+##################################
+# Use seaborn to plot area, ordering by size. Need to create DF in the first place
+grDat_Gp = MetTMaxMinR.groupby("County")["County"].count().to_frame(name="Area")
+grFinal= grDat_Gp.sort_values(by=["Area"], ascending=False)
+
+grFinal.reset_index(inplace=True)
+grList=grFinal["County"].tolist()
+print(grList)
+
+sns.set_style("dark")
+sns.catplot(y=grDat["County"], kind="count", data=grDat,
+            order=grList, palette=sns.color_palette('viridis', n_colors=26),
+            height=8, zorder=2)
+#plt.figure(figsize=(9, 10), dpi=80)
+plt.xlabel("County Area (km\u00b2)", fontsize=11)
+plt.ylabel("County Name", fontsize=11)
+plt.grid(which="major", axis="both", zorder=1)
+plt.title("SEABORN - Area of Irish Counties (km\u00b2)", fontsize=14)
+plt.tight_layout()
+plt.show()
+
+## end of Seaborn
+###############################
+
 # need to create DF of the grouped results and then sort by the area so that plots from smallest to largest
 grDat_Gp = MetTMaxMinR.groupby("County")["County"].count().to_frame(name="Area")
 grFinal= grDat_Gp.sort_values(by=["Area"])
@@ -159,34 +203,18 @@ print(grFinal)
 #plt.xlabel("Area (km2)")
 #plt.show()
 
-
-
-# what about a pivot table for this type of bar chart???
-#print(sales.pivot_table(values="weekly_sales", index="department", columns="type",fill_value=0))
-#print(grDat.pivot_table(values="County", index="County", fill_value=0))
-#the above will take the weekly_sales data and use department as the index
-
-
 # this is the best
 fig, ax = plt.subplots()
 fig.set_size_inches(9,7)
 ax.barh(grFinal["County"], grFinal["Area"], zorder=2)  # zorder specifies the order of drawing
-#ax.set_xticklabels(Rio.index)  #, rotation=45)
 ax.set_xlabel("Area km\u00b2")
 ax.set_ylabel("County")
-
 ax.xaxis.set_minor_locator(MultipleLocator(200)) ### set minor tick mark size
 ax.grid(True, which="minor", zorder=1)
-
 ax.xaxis.set_major_locator(MultipleLocator(1000))  # set major tick mark size
 ax.grid(True, axis="x", which="major", linewidth=2, zorder=1)
-
-
-
-#ax.legend("Area")
 fig.suptitle("Area of Irish Counties (km\u00b2)")
 fig.tight_layout()   # removes white space around graph
-#ax.legend()
 plt.show()
 
 ## This is 2nd best
@@ -206,7 +234,6 @@ plt.show()
 
 grDat_El = grDat.groupby("County")["Elev_y"].mean().to_frame(name="ElevMean")
 grElev= grDat_El.sort_values(by=["ElevMean"])
-#grFinal["Size"]=0
 grElev.reset_index(inplace=True)   # reset the index so that can plot properly
 print(grElev)
 
@@ -217,10 +244,6 @@ grElev2.reset_index(inplace=True)
 #grElev.reset_index(inplace=True)   # reset the index so that can plot properly
 print(grElev2)
 
-
-# try multiple agg functions
-
-# dogs.groupby("color")["weight].agg([min, max, sum])
 
 # create mean, min, max and stdev of the county elevation and plot with error bars
 grDat_El3 = grDat.groupby("County")["Elev_y"].agg([np.mean, min, max, np.std])
@@ -249,16 +272,10 @@ ax.xaxis.set_minor_locator(MultipleLocator(20))
 ax.grid(True, which="minor")
 
 ax.xaxis.set_major_locator(MultipleLocator(100))
-#ax.xaxis.set_major_formatter("{x:.0f}")
 ax.grid(True, axis="x", which="major", linewidth=2)
 ax.grid(True, axis="y", which="major", linewidth=1)
-
-
-#ax.set_xticklabels(Rio.index)  #, rotation=45)
 ax.set_xlabel("Average elevation (m)")
 ax.set_ylabel("County")
-#ax.legend("Area")
 fig.suptitle("Average elevation of Irish counties (m)")
 fig.tight_layout()   # removes white space around graph
-#ax.legend()
 plt.show()
