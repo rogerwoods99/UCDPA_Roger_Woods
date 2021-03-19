@@ -7,6 +7,7 @@ from shapely.geometry import shape # shape() is a function to convert geo object
 import pandas as pd
 from matplotlib.ticker import MultipleLocator
 import seaborn as sns
+import matplotlib.colors as colors
 
 # get Met Eireann data which already has the elevation and county data included.
 # Add a "County" column to store the county name per point
@@ -94,28 +95,70 @@ def PlotMap(coordX, coordY, coordZ, labText, pltTit, Ucol):
     plt.title(pltTit, fontsize=14)
     plt.tight_layout()
 
+################### Function to truncate color map ###################
+def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+    '''truncate_colormap(cmapIn='jet', minval=0.0, maxval=1.0, n=100)'''
+    new_cmap = colors.LinearSegmentedColormap.from_list(
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        cmap(np.linspace(minval, maxval, n)))
+    return new_cmap
+
 #########################################################
 # Plot the rainfall data
+
+cmap = plt.get_cmap("YlGnBu")    #YlGnBu 0.2, 1.0
+cmap_mod = truncate_colormap(cmap, minval=.2, maxval=1.0)
+
+#PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["ANN"],
+#        "Annual Rainfall (mm)", "Ireland Rainfall data", "viridis")
+#plt.show()
+
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["ANN"],
-        "Annual Rainfall (mm)", "Ireland Rainfall data", "viridis")
+        "Annual Rainfall (mm)", "Ireland Rainfall data", cmap_mod)
 plt.show()
+
 
 #########################################################
 # Plot the elevation data
+
+# Save the value of one data point so that can put in an artificially low value
+# so that the color scheme works better
+# Don't use this, the cmap modification works best
+
+#tv = MetTMaxMinR.loc[0,"Elev_y"]
+#MetTMaxMinR.loc[0,"Elev_y"] = -300
+#PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["Elev_y"],
+#        "elevation (m)", "Ireland Terrain Height (m)", "terrain")
+#plt.show()
+#MetTMaxMinR.loc[0,"Elev_y"]= tv
+
+
+
+
+
+
+cmap = plt.get_cmap("terrain")
+cmap_mod = truncate_colormap(cmap, minval=.2, maxval=.95)
+
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["Elev_y"],
-        "elevation (m)", "Ireland Terrain Height (m)", "terrain")
+        "Elevation (m)", "Ireland Terrain Height", cmap_mod)
 plt.show()
+
 
 #########################################################
 # Plot the minimum temp data
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["minT"],
-        "temperature (" + chr(176) + "C)", "Ireland Minimum Temperature", "winter")
+        "Temperature (" + chr(176) + "C)", "Ireland Minimum Temperature", "winter")
 plt.show()
 
 #########################################################
 # Plot the maximum temp data
+
+cmap = plt.get_cmap("hot_r")    #YlGnBu 0.2, 1.0
+cmap_mod = truncate_colormap(cmap, minval=.1, maxval=0.6)
+
 PlotMap(MetTMaxMinR["east"], MetTMaxMinR["north"], MetTMaxMinR["maxT"],
-        "temperature (" + chr(176) + "C)", "Ireland Maximum Temperature", "RdYlGn_r")
+        "Temperature (" + chr(176) + "C)", "Ireland Maximum Temperature", cmap_mod)  # RdYlGn_r
 plt.show()
 
 #################################################################
@@ -172,7 +215,7 @@ sns.catplot(y=grDat["County"], kind="count", data=grDat,
 plt.xlabel("County Area (km\u00b2)", fontsize=11)
 plt.ylabel("County Name", fontsize=11)
 plt.grid(which="major", axis="both", zorder=1)
-plt.title("SEABORN - Area of Irish Counties (km\u00b2)", fontsize=14)
+plt.title("Comparison of Area of Irish Counties", fontsize=14)
 plt.tight_layout()
 plt.show()
 
@@ -180,11 +223,11 @@ plt.show()
 ###############################
 
 # need to create DF of the grouped results and then sort by the area so that plots from smallest to largest
-grDat_Gp = MetTMaxMinR.groupby("County")["County"].count().to_frame(name="Area")
-grFinal= grDat_Gp.sort_values(by=["Area"])
+#]grDat_Gp = MetTMaxMinR.groupby("County")["County"].count().to_frame(name="Area")
+#]grFinal= grDat_Gp.sort_values(by=["Area"])
 #grFinal["Size"]=0
-grFinal.reset_index(inplace=True)   # reset the index so that can plot properly
-print(grFinal)
+#]grFinal.reset_index(inplace=True)   # reset the index so that can plot properly
+#]print(grFinal)
 
 # add numbers from 0 to 25
 #for s in range(26):
@@ -204,18 +247,18 @@ print(grFinal)
 #plt.show()
 
 # this is the best
-fig, ax = plt.subplots()
-fig.set_size_inches(9,7)
-ax.barh(grFinal["County"], grFinal["Area"], zorder=2)  # zorder specifies the order of drawing
-ax.set_xlabel("Area km\u00b2")
-ax.set_ylabel("County")
-ax.xaxis.set_minor_locator(MultipleLocator(200)) ### set minor tick mark size
-ax.grid(True, which="minor", zorder=1)
-ax.xaxis.set_major_locator(MultipleLocator(1000))  # set major tick mark size
-ax.grid(True, axis="x", which="major", linewidth=2, zorder=1)
-fig.suptitle("Area of Irish Counties (km\u00b2)")
-fig.tight_layout()   # removes white space around graph
-plt.show()
+#]fig, ax = plt.subplots()
+#]fig.set_size_inches(9,7)
+#]ax.barh(grFinal["County"], grFinal["Area"], zorder=2)  # zorder specifies the order of drawing
+#]ax.set_xlabel("Area km\u00b2")
+#]ax.set_ylabel("County")
+#]ax.xaxis.set_minor_locator(MultipleLocator(200)) ### set minor tick mark size
+#]ax.grid(True, which="minor", zorder=1)
+#]ax.xaxis.set_major_locator(MultipleLocator(1000))  # set major tick mark size
+#]ax.grid(True, axis="x", which="major", linewidth=2, zorder=1)
+#]fig.suptitle("Area of Irish Counties (km\u00b2)")
+#]fig.tight_layout()   # removes white space around graph
+#]plt.show()
 
 ## This is 2nd best
 
@@ -232,17 +275,17 @@ plt.show()
 #######################################################
 # AVERAGE ELEVATION OF COUNTIES
 
-grDat_El = grDat.groupby("County")["Elev_y"].mean().to_frame(name="ElevMean")
-grElev= grDat_El.sort_values(by=["ElevMean"])
-grElev.reset_index(inplace=True)   # reset the index so that can plot properly
-print(grElev)
+#]grDat_El = grDat.groupby("County")["Elev_y"].mean().to_frame(name="ElevMean")
+#]grElev= grDat_El.sort_values(by=["ElevMean"])
+#]grElev.reset_index(inplace=True)   # reset the index so that can plot properly
+#]print(grElev)
 
-grDat_El2 = grDat.groupby("County")[["Elev_y"]].mean()  # same as above but creates DF straight away. Keeps elev_y name
-grElev2= grDat_El2.sort_values(by=["Elev_y"])
-grElev2.reset_index(inplace=True)
+#]grDat_El2 = grDat.groupby("County")[["Elev_y"]].mean()  # same as above but creates DF straight away. Keeps elev_y name
+#]grElev2= grDat_El2.sort_values(by=["Elev_y"])
+#]grElev2.reset_index(inplace=True)
 #grFinal["Size"]=0
 #grElev.reset_index(inplace=True)   # reset the index so that can plot properly
-print(grElev2)
+#]print(grElev2)
 
 
 # create mean, min, max and stdev of the county elevation and plot with error bars
@@ -250,13 +293,6 @@ grDat_El3 = grDat.groupby("County")["Elev_y"].agg([np.mean, min, max, np.std])
 grDat_El3.reset_index(inplace=True)
 grElev3=grDat_El3.sort_values(["mean"])
 print(grDat_El3)
-#grElev3= grDat_El3.sort_values(by=["Elev_y"])
-#grElev3.reset_index(inplace=True)
-#grFinal["Size"]=0
-#grElev.reset_index(inplace=True)   # reset the index so that can plot properly
-#print(grElev3)
-
-
 
 fig, ax = plt.subplots()
 fig.set_size_inches(9,7)
@@ -276,6 +312,6 @@ ax.grid(True, axis="x", which="major", linewidth=2)
 ax.grid(True, axis="y", which="major", linewidth=1)
 ax.set_xlabel("Average elevation (m)")
 ax.set_ylabel("County")
-fig.suptitle("Average elevation of Irish counties (m)")
+fig.suptitle("Average elevation of Irish counties with Standard Deviation")
 fig.tight_layout()   # removes white space around graph
 plt.show()
