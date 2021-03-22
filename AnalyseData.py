@@ -8,9 +8,9 @@ import pandas as pd
 from matplotlib.ticker import MultipleLocator
 import seaborn as sns
 import matplotlib.colors as colors
+from cycler import cycler
 
 # get Met Eireann data which already has the elevation and county data included.
-# Add a "County" column to store the county name per point
 filename="MetEireann_maxT_County.txt"
 grDat = pd.read_csv(filename)
 
@@ -21,7 +21,7 @@ grNaN= grDat[grDat.isna().any(axis=1)]
 #print(grDat.columns)
 grDat.dropna(inplace=True)  # drop rows with NaN value
 grDat.drop(grDat.columns[0:2], axis=1, inplace=True)  # drop the first 2 columns
-grDat.drop(columns="Elev_x", axis=1, inplace=True)  # drop the Elev_x column
+grDat.drop(columns="Elev_x", axis=1, inplace=True)  # drop the Elev_x column as this is a duplicate
 #print(grDat)
 
 ##############################
@@ -213,4 +213,58 @@ ax.set_xlabel("Average elevation (m)")
 ax.set_ylabel("County")
 fig.suptitle("Average elevation of Irish counties with Standard Deviation")
 fig.tight_layout()   # removes white space around graph
+plt.show()
+
+#######################################################
+# AVERAGE RAINFALL OF COUNTIES
+
+# create mean, min, max and stdev of the county annual rainfall and plot with error bars
+grDat_R = MetTMaxMinR.groupby("County")["ANN"].agg([np.mean, min, max, np.std])
+grDat_R.reset_index(inplace=True)
+grElev4=grDat_R.sort_values(["mean"])  # sort the results by mean
+print(grDat_R)
+
+fig, ax = plt.subplots()
+fig.set_size_inches(9,7)
+ax.errorbar(grElev4["mean"], grElev4["County"], xerr=grElev4["std"],
+            ecolor="red", capsize=5, linewidth=4, elinewidth=1, fmt="bo")
+
+ax.xaxis.set_minor_locator(MultipleLocator(20))
+ax.grid(True, which="minor")
+
+ax.xaxis.set_major_locator(MultipleLocator(100))
+ax.grid(True, axis="x", which="major", linewidth=2)
+ax.grid(True, axis="y", which="major", linewidth=1)
+ax.set_xlabel("Average rainfall (mm)")
+ax.set_ylabel("County")
+fig.suptitle("Average Annual Rainfall of Irish counties with Standard Deviation")
+fig.tight_layout()   # removes white space around graph
+plt.show()
+
+###################################################################
+# SCATTER PLOT OF AVE RAINFALL AND AVE MAXIMUM TEMP
+
+# create mean, min, max and stdev of the county maximum temp
+grDat_maxT = MetTMaxMinR.groupby("County")["maxT"].agg([np.mean, min, max, np.std])
+grDat_maxT.reset_index(inplace=True)
+
+# left merge the average rainfall and maximum temperature
+TempRain = grDat_R.merge(grDat_maxT, on=["County"], how="left", suffixes=("_R", "_maxT"))
+
+# left merge the above with area of county
+TempRain3 = TempRain.merge(grDat_Gp, on=["County"], how="left")
+
+# create lists of the county names and average rainfall and temperature values for annotation purposes
+CountyList = TempRain3["County"].to_list()
+RmeanList = TempRain3["mean_R"].to_list()
+TmeanList = TempRain3["mean_maxT"].to_list()
+
+plt.figure(figsize=(9, 10), dpi=80)  # set the size of the image window. figsize x dpi gives the output size
+plt.scatter(TempRain3["mean_R"], TempRain3["mean_maxT"], s = TempRain3["Area"]/4, alpha=0.8)  # s is size
+for i, txt in enumerate(CountyList):
+    plt.annotate(txt, (RmeanList[i]+10, TmeanList[i]))
+plt.xlabel("Average Rainfall (mm)", fontsize=12)
+plt.ylabel("Average Maximum Temperature (" + chr(176) + "C)", fontsize=12)
+plt.grid(which="major", axis="both")
+plt.title("Correlation of Average Rainfall and Average Maximum Temperature", fontsize=14)
 plt.show()
